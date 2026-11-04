@@ -1,8 +1,10 @@
 # Load libraries
 library(tidyverse)
+library(survey)   # svycontrast function for linear combination tests
+library(multcomp) # glht function for linear combination tests
 
 # Load data
-class621 <- read_csv("2017class621.csv")
+class621 <- read_csv("./Lab2/2017class621.csv")
 
 # 1. Inspect data
 table(class621$exhrs)
@@ -17,11 +19,11 @@ table(class621$exhrs3)
 # 3. Examine relationship between BMI and exercise group
 ## Calculate BMI
 class621 <- class621 %>%
-  mutate(bmi = (weight/height^2)*704.5) # weight in lbs, height in feet?
+  mutate(bmi = (weight/height^2)*704.5) # weight in lbs, height in inches
 
 ## Create boxplot to visualize relationship
 ### Base R plot
-boxplot(bmi ~ exhrs3, data = 621) 
+boxplot(bmi ~ exhrs3, data = class621) 
 
 ### Alternatively, use ggplot (from tidyverse)
 class621 %>%
@@ -52,9 +54,17 @@ summary(model1)
 anova(model1)
 summary(model1)
 
-# TODO: set up contrasts to test if B1 = B2
+## Set up contrasts to test if B1 = B2
+### using svycontrast function from survey package
+lin_com1 <- svycontrast(model1, c("exhrs32-3" = -1, "exhrs34+" = 1))
+confint(lin_com1)
 
-# 8. What do you conclude regardint the pairwise comparisons of BMI between 
+### Alternatively, using glht function from multcomp package
+K <- matrix(c(0, 1, -1), nrow = 1) 
+lin_com2 <- glht(model1, linfct = K)
+summary(lin_com2)
+
+# 8. What do you conclude regarding the pairwise comparisons of BMI between 
 # weekly exercise groups and the group with 0 hours of exercise? How would you
 # set up and test this hypothesis?
 
